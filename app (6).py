@@ -16,6 +16,8 @@ def load_data():
 
     df = pd.read_csv("cleaned_recipes.csv")
 
+st.write(df.columns.tolist())
+
     nutrition_df = pd.read_csv("food.csv.zip")
 
     nutrition_df = nutrition_df[
