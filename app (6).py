@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from deep_translator import GoogleTranslator
 from gtts import gTTS
 import re
 import os
@@ -99,19 +98,8 @@ synonyms = {
 
 def translate_to_english(text):
 
-    try:
+    return text
 
-        return GoogleTranslator(
-
-            source='auto',
-
-            target='en'
-
-        ).translate(text)
-
-    except:
-
-        return text
 
 
 # ---------------- NORMALIZE ----------------
