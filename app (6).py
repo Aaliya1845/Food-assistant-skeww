@@ -9,15 +9,13 @@ from gtts import gTTS
 import os
 
 # --- Data Loading and Model Initialization ---
-@st.cache_resource # Cache the model loading for performance
+@st.cache_resource
 def load_model_and_data():
+
     df = pd.read_csv("cleaned_recipes.csv")
-    return df, nutrition_df
 
-df, nutrition_df = load_model_and_data()
+    nutrition_df = pd.read_csv("food.csv.zip")
 
-    # Load and preprocess nutrition data
-    nutrition_df = pd.read_csv("food.csv.zip") # Assume food.csv.zip is present
     nutrition_df = nutrition_df[[
         "Description",
         "Data.Kilocalories",
@@ -25,6 +23,7 @@ df, nutrition_df = load_model_and_data()
         "Data.Carbohydrate",
         "Data.Fat.Total Lipid"
     ]]
+
     nutrition_df.columns = [
         "food_name",
         "calories",
@@ -32,10 +31,18 @@ df, nutrition_df = load_model_and_data()
         "carbs",
         "fat"
     ]
-    nutrition_df["food_name"] = nutrition_df["food_name"].astype(str).str.lower().str.replace(",", " ")
-    return df, recipe_embeddings, model, nutrition_df
 
-df, recipe_embeddings, model, nutrition_df = load_model_and_data()
+    nutrition_df["food_name"] = (
+        nutrition_df["food_name"]
+        .astype(str)
+        .str.lower()
+        .str.replace(",", " ")
+    )
+
+    return df, nutrition_df
+
+
+df, nutrition_df = load_model_and_data()
 
 # --- Helper Functions ---
 
