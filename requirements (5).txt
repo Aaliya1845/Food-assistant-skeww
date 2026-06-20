@@ -1,0 +1,10 @@
+streamlit
+numpy
+pandas
+sentence-transformers
+scikit-learn
+deep_translator
+gTTS
+SpeechRecognition
+pydub
+ipywidgets
