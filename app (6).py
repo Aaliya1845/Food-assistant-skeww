@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-from sentence_transformers import SentenceTransformer
+
 from sklearn.metrics.pairwise import cosine_similarity
 from deep_translator import GoogleTranslator
 import re
@@ -12,8 +12,9 @@ import os
 @st.cache_resource # Cache the model loading for performance
 def load_model_and_data():
     df = pd.read_csv("cleaned_recipes.csv")
-    recipe_embeddings = np.load("recipe_embeddings.npy")
-    model = SentenceTransformer("all-MiniLM-L6-v2")
+    return df, nutrition_df
+
+df, nutrition_df = load_model_and_data()
 
     # Load and preprocess nutrition data
     nutrition_df = pd.read_csv("food.csv.zip") # Assume food.csv.zip is present
@@ -104,15 +105,43 @@ def nutrition_estimate(user_input_ingredients, nutrition_df):
     st.write(f"🔥 Calories: {round(total_cal, 2)}")
     st.write(f"💪 Protein: {round(total_protein, 2)} g")
     st.write(f"🍞 Carbs: {round(total_carbs, 2)} g")
-    st.write(f"🥑 Fat: {round(total_fat, 2)} g")
+    st.write(f"🥑 Fat: {round(total_fat, 2)} 
+    
+    def recommend(user_input):
 
-def recommend(user_input):
-    user_vec = model.encode([user_input])
-    scores = cosine_similarity(user_vec, recipe_embeddings)[0]
-    top_idx = np.argsort(scores)[-10:][::-1] # Get top 10 as in the latest food_ai
-    results = df.iloc[top_idx].copy()
-    results["score"] = scores[top_idx]
-    return results
+    user_words = set(
+        user_input.lower().split()
+    )
+
+    scores = []
+
+    for _, row in df.iterrows():
+
+        recipe_words = set(
+            str(row["Cleaned-Ingredients"])
+            .lower()
+            .replace(",", " ")
+            .split()
+        )
+
+        score = len(
+            user_words.intersection(
+                recipe_words
+            )
+        )
+
+        scores.append(score)
+
+    temp_df = df.copy()
+
+    temp_df["score"] = scores
+
+    temp_df = temp_df.sort_values(
+        by="score",
+        ascending=False
+    )
+
+    return temp_df.head(10)
 
 # --- Streamlit Application Logic ---
 st.set_page_config(page_title="AI Food Assistant", layout="wide")
