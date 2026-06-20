@@ -1,11 +1,7 @@
 streamlit
 numpy
 pandas
-scikit-learn
-sentence-transformers
-torch
 deep-translator
 gTTS
-SpeechRecognition
 pydub
-ipywidgets
+SpeechRecognition
