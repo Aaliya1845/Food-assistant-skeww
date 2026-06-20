@@ -1,14 +1,11 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-from gtts import gTTS
 import re
-import os
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------- PAGE ----------------
 
 st.set_page_config(
-    page_title="AI Food Assistant",
+    page_title="AI Food Recommendation System",
     layout="wide"
 )
 
@@ -80,31 +77,16 @@ synonyms = {
 
     "tandul": "rice",
 
-    "tandool": "rice",
-
     "capsicum": "bell pepper",
-
-    "shimla": "bell pepper",
-
-    "shimla mirch": "bell pepper",
-
-    "hari mirch": "green chilli",
 
     "mirchi": "green chilli"
 
 }
 
-# ---------------- TRANSLATE ----------------
-
-def translate_to_english(text):
-
-    return text
-
-
 
 # ---------------- NORMALIZE ----------------
 
-def normalize_ingredients(text):
+def normalize(text):
 
     words = text.lower().split()
 
@@ -114,7 +96,13 @@ def normalize_ingredients(text):
 
         result.append(
 
-            synonyms.get(word, word)
+            synonyms.get(
+
+                word,
+
+                word
+
+            )
 
         )
 
@@ -129,7 +117,7 @@ def short_steps(text):
 
     steps = text.split(".")
 
-    short = []
+    result = []
 
     for i in range(
 
@@ -139,22 +127,22 @@ def short_steps(text):
 
         if steps[i].strip() != "":
 
-            short.append(
+            result.append(
 
                 f"{i+1}. {steps[i].strip()}"
 
             )
 
-    return "\n".join(short)
+    return "\n".join(result)
 
 
-# ---------------- INGREDIENT ANALYSIS ----------------
+# ---------------- MATCH ----------------
 
 def ingredient_analysis(
 
-        user_input,
+    user_input,
 
-        recipe_ingredients
+    recipe_input
 
 ):
 
@@ -162,7 +150,7 @@ def ingredient_analysis(
 
         re.findall(
 
-            r'\w+',
+            r"\w+",
 
             user_input.lower()
 
@@ -174,9 +162,9 @@ def ingredient_analysis(
 
         re.findall(
 
-            r'\w+',
+            r"\w+",
 
-            str(recipe_ingredients).lower()
+            str(recipe_input).lower()
 
         )
 
@@ -197,9 +185,7 @@ def ingredient_analysis(
 
 def nutrition_estimate(
 
-        user_input,
-
-        nutrition_df
+    user_input
 
 ):
 
@@ -247,35 +233,31 @@ def nutrition_estimate(
 
             total_fat += row["fat"]
 
+    st.write("Matched Foods:")
+
+    st.write(", ".join(found))
+
     st.write(
 
-        "Matched Foods:",
-
-        ", ".join(found)
+        f"🔥 Calories : {round(total_cal,2)}"
 
     )
 
     st.write(
 
-        f"🔥 Calories: {round(total_cal,2)}"
+        f"💪 Protein : {round(total_protein,2)} g"
 
     )
 
     st.write(
 
-        f"💪 Protein: {round(total_protein,2)} g"
+        f"🍞 Carbs : {round(total_carbs,2)} g"
 
     )
 
     st.write(
 
-        f"🍞 Carbs: {round(total_carbs,2)} g"
-
-    )
-
-    st.write(
-
-        f"🥑 Fat: {round(total_fat,2)} g"
+        f"🥑 Fat : {round(total_fat,2)} g"
 
     )
 
@@ -322,11 +304,11 @@ def recommend(user_input):
 
         scores.append(score)
 
-    temp_df = df.copy()
+    temp = df.copy()
 
-    temp_df["score"] = scores
+    temp["score"] = scores
 
-    temp_df = temp_df.sort_values(
+    temp = temp.sort_values(
 
         by="score",
 
@@ -334,16 +316,20 @@ def recommend(user_input):
 
     )
 
-    return temp_df.head(10)
+    return temp.head(10)
 
 
 # ---------------- UI ----------------
 
-st.title("🍲 AI Food Recommendation System")
+st.title(
+
+    "🍲 AI Food Recommendation System"
+
+)
 
 st.write(
 
-    "Enter ingredients in English, Hindi or Marathi."
+    "Enter ingredients separated by spaces"
 
 )
 
@@ -359,55 +345,47 @@ if st.button("Get Recipes"):
 
     if user_input:
 
-        translated = translate_to_english(
+        user_input = normalize(
 
             user_input
 
         )
 
-        normalized = normalize_ingredients(
-
-            translated
-
-        )
-
         st.subheader(
 
-            f"🌐 Processed Input: {normalized}"
+            f"Input : {user_input}"
 
         )
-
-        st.write("---")
 
         results = recommend(
 
-            normalized
+            user_input
 
         )
 
-        for i, row in results.iterrows():
+        for _, row in results.iterrows():
 
             st.markdown(
 
-                f"### 🍲 {row['TranslatedRecipeName']}"
+                f"## 🍲 {row['TranslatedRecipeName']}"
 
             )
 
             st.write(
 
-                f"🍛 Cuisine: {row['Cuisine']}"
+                f"🍛 Cuisine : {row['Cuisine']}"
 
             )
 
             st.write(
 
-                f"⏱ Time: {row['TotalTimeInMins']} mins"
+                f"⏱ Time : {row['TotalTimeInMins']} mins"
 
             )
 
             matched, missing = ingredient_analysis(
 
-                normalized,
+                user_input,
 
                 row["Cleaned-Ingredients"]
 
@@ -415,15 +393,19 @@ if st.button("Get Recipes"):
 
             st.write(
 
-                "✅ You Have:",
+                "✅ You Have :",
 
-                ", ".join(list(matched))
+                ", ".join(
+
+                    list(matched)
+
+                )
 
             )
 
             st.write(
 
-                "❌ Missing:",
+                "❌ Missing :",
 
                 ", ".join(
 
@@ -433,7 +415,11 @@ if st.button("Get Recipes"):
 
             )
 
-            st.write("👨‍🍳 Short Steps:")
+            st.write(
+
+                "👨‍🍳 Short Steps"
+
+            )
 
             st.text(
 
@@ -447,61 +433,33 @@ if st.button("Get Recipes"):
 
             st.write(
 
-                f"📊 Match Score: {row['score']}"
+                f"📊 Match Score : {row['score']}"
 
             )
 
-            if pd.notna(
+            try:
 
-                row["image-url"]
+                if pd.notna(
 
-            ):
+                    row["image-url"]
 
-                try:
+                ):
 
                     st.image(
 
                         row["image-url"],
 
-                        caption=row["TranslatedRecipeName"],
-
                         width=300
 
                     )
 
-                except:
+            except:
 
-                    st.write(
+                st.write(
 
-                        "Image not available"
+                    "Image not available"
 
-                    )
-
-            tts_text = (
-
-                f"You can make "
-
-                f"{row['TranslatedRecipeName']}"
-
-            )
-
-            tts = gTTS(
-
-                text=tts_text,
-
-                lang='en'
-
-            )
-
-            filename = f"recipe_{i}.mp3"
-
-            tts.save(filename)
-
-            st.audio(filename)
-
-            if os.path.exists(filename):
-
-                os.remove(filename)
+                )
 
             st.subheader(
 
@@ -511,9 +469,7 @@ if st.button("Get Recipes"):
 
             nutrition_estimate(
 
-                normalized,
-
-                nutrition_df
+                user_input
 
             )
 
@@ -523,6 +479,6 @@ if st.button("Get Recipes"):
 
         st.warning(
 
-            "Please enter ingredients."
+            "Please enter ingredients"
 
-                )
+        )
